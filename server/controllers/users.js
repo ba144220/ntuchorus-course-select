@@ -65,8 +65,27 @@ const deleteAll = async (req, res) => {
 };
 
 const getAll = async (req, res) => {
+    const { only_admin, only_not_selected } = req.query;
+
     try {
-        const data = await UserModel.find({});
+        let data;
+        if (only_admin) {
+            data = await UserModel.find({
+                $or: [{ userType: USER_TYPE.ADMIN }, { userType: USER_TYPE.SUPER }],
+            });
+        } else {
+            data = await UserModel.find({});
+        }
+        return res.status(200).json(data);
+    } catch (error) {
+        return res.status(500).json({ message: "發生錯誤", type: "error" });
+    }
+};
+
+const getById = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const data = await UserModel.findById(id);
         return res.status(200).json(data);
     } catch (error) {
         return res.status(500).json({ message: "發生錯誤", type: "error" });
@@ -78,4 +97,5 @@ module.exports = {
     signup,
     deleteAll,
     getAll,
+    getById,
 };
