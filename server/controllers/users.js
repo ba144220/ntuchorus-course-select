@@ -92,10 +92,27 @@ const getById = async (req, res) => {
     }
 };
 
+const modifyById = async (req, res) => {
+    const updatedUser = req.body;
+    const { id } = req.params;
+    console.log(updatedUser);
+    try {
+        let user = await UserModel.findById(id);
+        if (!user) {
+            return res.status(404).send("user not found");
+        }
+        await UserModel.findByIdAndUpdate(id, updatedUser, { new: true });
+        return res.status(200).send("success");
+    } catch (error) {
+        return res.status(500).json({ message: "發生錯誤", type: "error" });
+    }
+};
+
 module.exports = {
     signin,
     signup,
     deleteAll,
     getAll,
     getById,
+    modifyById,
 };

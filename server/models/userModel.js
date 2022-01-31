@@ -6,7 +6,10 @@ const userSchema = mongoose.Schema({
     email: { type: String, required: true },
     password: { type: String, required: true },
     userType: { type: String, enum: USER_TYPE, default: USER_TYPE.USER },
-    id: { type: String },
+    courses: {
+        type: [String],
+        default: undefined,
+    },
     createdAt: {
         type: Date,
         default: Date.now,
