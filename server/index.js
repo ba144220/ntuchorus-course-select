@@ -3,6 +3,7 @@ const express = require("express");
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
+const cors = require("cors");
 
 const usersRoute = require("./routes/users");
 const coursesRoute = require("./routes/courses");
@@ -12,6 +13,7 @@ dotenv.config();
 const app = express();
 app.use(bodyParser.json({ limit: "30mb", extended: true }));
 app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
+app.use(cors());
 
 app.use("/users", usersRoute);
 app.use("/courses", coursesRoute);
