@@ -1,4 +1,4 @@
-const jsonwebtoken = require("jsonwebtoken");
+const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
@@ -12,12 +12,45 @@ const signin = async (req, res) => {
 
     const { email, password } = req.body;
     const emailLower = email.toLowerCase().replace(/\s/g, "");
+    try {
+        // Get the user with that email
+        const existingUser = await UserModel.findOne({ email: emailLower });
 
-    res.status(200).send("signin");
+        // Check if the user exist
+        if (!existingUser) {
+            console.log("使用者不存在");
+            return res.status(404).json({ message: "使用者不存在", type: "error" });
+        }
+        // Check if the password is correct
+        const isPasswordCorrect = await bcrypt.compare(password, existingUser.password);
+        if (!isPasswordCorrect) {
+            console.log("密碼錯誤");
+            return res.status(400).json({ message: "密碼錯誤", type: "error" });
+        }
+
+        // Give the token
+        const token = jwt.sign(
+            {
+                email: existingUser.email,
+                id: existingUser._id,
+                userType: existingUser.userType,
+            },
+            process.env.JWT_SECRET,
+            {
+                expiresIn: TOKEN_EXPIRES_IN,
+            }
+        );
+
+        return res.status(200).json({ result: existingUser, token });
+    } catch (error) {
+        console.log("ERROR at controllers/user.js/signin");
+        console.log(error);
+        return res.status(500).json({ message: "發生錯誤", type: "error" });
+    }
 };
 const signup = async (req, res) => {
     console.log("[signup]");
-    const { email, password, confirmPassword, name } = req.body;
+    const { email, password, name } = req.body;
     const emailLower = email.toLowerCase().replace(/\s/g, "");
 
     try {
@@ -31,11 +64,6 @@ const signup = async (req, res) => {
         if (!(name && email && password)) {
             console.log("Not fill in all blanks");
             return res.status(404).json({ message: "尚有空格未填寫", type: "error" });
-        }
-
-        if (password !== confirmPassword) {
-            console.log("Passwords don't match");
-            return res.status(400).json({ message: "密碼不一致", type: "error" });
         }
 
         const hashedPassword = await bcrypt.hash(password, 12);
